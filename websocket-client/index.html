@@ -39,9 +39,9 @@
       // クライアントIDごとにキューブを保持するオブジェクト
       const cubes = {};
 
-      // FIXME: 色がかぶると相手に見えなくなる
       // ランダムな色コードでクライアントIDの生成
       const clientId = Math.random().toString(36).substring(2, 15); // 簡易的な一意のID
+
       const clientColor = generateRandomColor();
       console.log("client id : %s", clientId);
 
@@ -80,6 +80,8 @@
       function createCube(color) {
         const material = new THREE.MeshBasicMaterial({
           color: color,
+          transparent: true,
+          opacity: 0.5,
           // color: Math.random() * 0xffffff,
         });
         return new THREE.Mesh(new THREE.BoxGeometry(), material);
