@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>3Dマルチプレイヤーゲーム</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: black;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="three-canvas"></canvas>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+      // 3Dシーンのセットアップ
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+      );
+      const renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById("three-canvas"),
+      });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      document.body.appendChild(renderer.domElement);
+
+      // カメラの位置設定
+      camera.position.z = 5;
+
+      // クライアントIDごとにキューブを保持するオブジェクト
+      const cubes = {};
+
+      // FIXME: 色がかぶると相手に見えなくなる
+      // ランダムな色コードでクライアントIDの生成
+      const clientId = Math.random().toString(36).substring(2, 15); // 簡易的な一意のID
+      const clientColor = generateRandomColor();
+      console.log("client id : %s", clientId);
+
+      function generateRandomColor() {
+        const red = Math.floor(Math.random() * 256);
+        const green = Math.floor(Math.random() * 256);
+        const blue = Math.floor(Math.random() * 256);
+
+        return (
+          "#" +
+          red.toString(16).padStart(2, "0") +
+          green.toString(16).padStart(2, "0") +
+          blue.toString(16).padStart(2, "0")
+        );
+      }
+
+      // キャラクター（キューブ）の作成
+      const material = new THREE.MeshBasicMaterial({
+        color: clientColor,
+        // color: Math.random() * 0xffffff,
+      }); // ランダムな色
+      const cube = new THREE.Mesh(new THREE.BoxGeometry(), material);
+      scene.add(cube);
+
+      // レンダリング関数
+      function animate() {
+        requestAnimationFrame(animate);
+        renderer.render(scene, camera);
+      }
+      animate();
+
+      // 他のブラウザで表示される自分のキューブを作成
+      const myCube = createCube(clientColor);
+      cubes[clientId] = myCube;
+
+      function createCube(color) {
+        const material = new THREE.MeshBasicMaterial({
+          color: color,
+          // color: Math.random() * 0xffffff,
+        });
+        return new THREE.Mesh(new THREE.BoxGeometry(), material);
+      }
+
+      // WebSocketのセットアップ
+      const socket = new WebSocket("ws://localhost:8080");
+
+      socket.addEventListener("open", function (event) {
+        console.log("WebSocket接続が開かれました");
+        // サーバーにクライアントIDを送信（初回接続時）
+        socket.send(
+          JSON.stringify({
+            type: "newClient",
+            id: clientId,
+            color: clientColor,
+            position: cube.position,
+          })
+        );
+      });
+
+      socket.addEventListener("message", function (event) {
+        const data = JSON.parse(event.data);
+
+        // 無いキューブの場合、はキューブを作成
+        if (!cubes[data.id]) {
+          cubes[data.id] = createCube(data.color);
+          scene.add(cubes[data.id]);
+        }
+
+        if (data.type === "newClient") {
+          // 新しいクライアントの場合
+          console.log("newClient");
+        } else if (data.type === "move") {
+          console.log("move");
+          // キューブの位置を更新
+          if (data.id !== clientId && data.position && data.color) {
+            if (cubes[data.id]) {
+              cubes[data.id].position.x = data.position.x;
+              cubes[data.id].position.y = data.position.y;
+              cubes[data.id].position.z = data.position.z;
+
+              cubes[data.id].material.color.set(data.color);
+            }
+          }
+        } else if (data.type === "closeClient") {
+          console.log("closeClient");
+          // sceneからメッシュ削除
+          scene.remove(cubes[data.id]);
+          // クライアントIDオブジェクトから該当のクライアントID情報を削除
+          delete cubes[data.id];
+        }
+      });
+
+      // キーボードイベントでキャラクターを動かす
+      document.addEventListener("keydown", function (event) {
+        const keyName = event.key;
+        let move = { x: 0, y: 0, z: 0 };
+
+        // キー入力に応じて移動量を設定
+        switch (keyName) {
+          case "ArrowUp":
+            move.z = -0.2;
+            break;
+          case "ArrowDown":
+            move.z = 0.2;
+            break;
+          case "ArrowLeft":
+            move.x = -0.2;
+            break;
+          case "ArrowRight":
+            move.x = 0.2;
+            break;
+          default:
+            return; // 他のキーは無視
+        }
+
+        // キューブの位置を更新
+        cube.position.x += move.x;
+        cube.position.y += move.y;
+        cube.position.z += move.z;
+
+        // 動きをWebSocket経由でサーバーに送信
+        socket.send(
+          JSON.stringify({
+            type: "move",
+            id: clientId,
+            color: clientColor,
+            position: {
+              x: cube.position.x,
+              y: cube.position.y,
+              z: cube.position.z,
+            },
+          })
+        );
+      });
+
+      window.addEventListener("beforeunload", function (event) {
+        // クリーンアップや保存処理などを行う
+        // 必要に応じて、ユーザーにページを離れる前に確認を求める
+        socket.send(
+          JSON.stringify({
+            type: "closeClient",
+            id: clientId,
+            color: clientColor,
+            position: {
+              x: cube.position.x,
+              y: cube.position.y,
+              z: cube.position.z,
+            },
+          })
+        );
+      });
+    </script>
+  </body>
+</html>
