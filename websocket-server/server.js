@@ -50,4 +50,6 @@ function getLocalIpAddress() {
 
 // IPアドレスを取得して出力
 const ipAddress = getLocalIpAddress();
-console.log(`WebSocket起動しました => ws://${ipAddress}:${port}`);
+console.log(
+  `WebSocket起動しました => Local IP Address : ${ipAddress} / Port : ${port}`
+);
