@@ -1,7 +1,8 @@
 // server.js
 const WebSocket = require("ws");
-
-const wss = new WebSocket.Server({ port: 8080 });
+const os = require("os");
+const port = 8080;
+const wss = new WebSocket.Server({ port: port });
 
 wss.on("connection", function connection(ws) {
   console.log("クライアントが接続しました");
@@ -35,4 +36,18 @@ wss.on("connection", function connection(ws) {
   });
 });
 
-console.log("WebSocketサーバーがポート8080で起動しました");
+// ローカルIPアドレスを取得する関数
+function getLocalIpAddress() {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if ("IPv4" === iface.family && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+}
+
+// IPアドレスを取得して出力
+const ipAddress = getLocalIpAddress();
+console.log(`WebSocket起動しました => ws://${ipAddress}:${port}`);
