@@ -1,8 +1,8 @@
 // server.js
 const WebSocket = require("ws");
 const os = require("os");
-const port = 8080;
-const wss = new WebSocket.Server({ port: port });
+const ws_port = process.env.PORT || 8080;
+const wss = new WebSocket.Server({ port: ws_port });
 
 wss.on("connection", function connection(ws) {
   console.log("クライアントが接続しました");
@@ -51,5 +51,5 @@ function getLocalIpAddress() {
 // IPアドレスを取得して出力
 const ipAddress = getLocalIpAddress();
 console.log(
-  `WebSocket起動しました => Local IP Address : ${ipAddress} / Port : ${port}`
+  `WebSocket起動しました => Local IP Address : ${ipAddress} / Port : ${ws_port}`
 );
