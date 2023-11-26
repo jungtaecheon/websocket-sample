@@ -1,7 +1,7 @@
 // server.js
 const WebSocket = require("ws");
 const os = require("os");
-const ws_port = process.env.PORT || 8080;
+const ws_port = process.env.PORT || 8008;
 const wss = new WebSocket.Server({ port: ws_port });
 
 wss.on("connection", function connection(ws) {
