@@ -34,6 +34,10 @@ wss.on("connection", function connection(ws) {
   ws.on("close", function close() {
     console.log("クライアントが切断しました");
   });
+
+  ws.on("connect_error", (err) => {
+    console.log(`connect_error due to ${err.message}`);
+  });
 });
 
 // ローカルIPアドレスを取得する関数
