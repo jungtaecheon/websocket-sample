@@ -1,9 +1,24 @@
 // server.js
-const WebSocket = require("ws");
-const os = require("os");
-const ws_port = process.env.PORT || 8008;
-const wss = new WebSocket.Server({ port: ws_port });
+var express = require("express");
+var app = express();
+var http = require("http");
+var server = http.createServer(app);
 
+const WebSocket = require("ws");
+const wss = new WebSocket.Server({ server });
+
+const os = require("os");
+
+const port = process.env.PORT || 3000;
+
+server.listen(port, function () {
+  console.log("Server listening at port %d", port);
+});
+
+// Routing
+app.use(express.static(__dirname + "/public"));
+
+// WebSocket
 wss.on("connection", function connection(ws) {
   console.log("クライアントが接続しました");
 
@@ -55,5 +70,7 @@ function getLocalIpAddress() {
 // IPアドレスを取得して出力
 const ipAddress = getLocalIpAddress();
 console.log(
-  `WebSocket起動しました => Local IP Address : ${ipAddress} / Port : ${ws_port}`
+  "WebSocket起動しました => Local IP Address : %s / Port : %d",
+  ipAddress,
+  port
 );

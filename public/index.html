@@ -88,8 +88,8 @@
       }
 
       // WebSocketのセットアップ（立ち上げたnodeサーバーのIPアドレスに修正する）
-      const socket = new WebSocket("ws://localhost:8080");
-      // const socket = new WebSocket("ws://192.168.1.6:8080");
+      const socket = new WebSocket("ws://localhost:3000");
+      // const socket = new WebSocket("ws://192.168.1.6:3000");
 
       socket.addEventListener("open", function (event) {
         console.log("WebSocket接続が開かれました");
