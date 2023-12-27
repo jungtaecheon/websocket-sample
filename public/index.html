@@ -88,9 +88,8 @@
       }
 
       // WebSocketのセットアップ
-      // const socketHost = "wss://websocket-sample.onrender.com";
-      const socketHost = process.env.SOCKET_HOST || "ws://localhost:3000";
-      const socket = new WebSocket(socketHost);
+      const socket = new WebSocket("wss://websocket-sample.onrender.com");
+      // const socket = new WebSocket("ws://localhost:3000");
 
       socket.addEventListener("open", function (event) {
         console.log("WebSocket接続が開かれました");
