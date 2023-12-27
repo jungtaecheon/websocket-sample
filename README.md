@@ -2,30 +2,28 @@
 
 ## デモ
 
-http://websocket-sample.ap-1.evennode.com/
+https://websocket-sample.onrender.com
 
-## 1. 初回準備
+## 1. フロントの WebSocket 向き先を設定
 
-```shell
-$ npm install
-```
+### ローカル PC で node を起動する場合
 
-## 2. サーバー起動
+- 自分の PC 内で Socket 通信する場合は、**修正不要**
+- 同じ Wi-Fi に接続している別 PC と Socket 通信する場合は以下の修正が必要
+  1. 「WebSocket サーバー起動」時に出力されるログを参照
+  1. index.html の socket 向き先を修正
+
+（例）
+
+「WebSocket サーバー起動」コマンド実行時のログ
 
 ```shell
 $ node server.js
+WebSocket起動しました => Local IP Address : 192.168.0.14 / Port : 3000
+Server listening at port 3000
 ```
 
-## 3. クライアント（index.html）修正
-
-（WebSocket の向き先）
-
-### ローカルの場合
-
-- 「WebSocket サーバー起動」時に出力されるログを参照
-- 別 PC と通信しない場合は、`ws://localhost:{port番号}`で OK
-
-（例）
+index.html の修正
 
 ```javascript
 // WebSocketのセットアップ
@@ -34,11 +32,23 @@ const socket = new WebSocket("ws://192.168.0.14:3000");
 
 ### サーバーにデプロイする場合
 
-- デプロイされたアプリの URL
+環境変数を指定
 
-（例）
+```
+SOCKET_HOST=ws://{デプロイ先のドメイン}
 
-```javascript
-// WebSocketのセットアップ
-const socket = new WebSocket("ws://websocket-sample.ap-1.evennode.com");
+// wss対応の場合はこっち
+SOCKET_HOST=wss://{デプロイ先のドメイン}
+```
+
+## 2. 初回準備
+
+```shell
+$ npm install
+```
+
+## 3. サーバー起動
+
+```shell
+$ node server.js
 ```
